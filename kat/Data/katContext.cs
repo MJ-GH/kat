@@ -13,5 +13,6 @@ namespace kat.Data
             : base(options)
         {
         }
+        public DbSet<kat.Models.Note> Note { get; set; }
     }
 }
