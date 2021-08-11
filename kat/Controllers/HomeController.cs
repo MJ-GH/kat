@@ -18,6 +18,7 @@ namespace kat.Controllers
         private readonly IServiceProvider _serviceProvider;
         private readonly MyUserRoleHandler _myUserRoleHandler;
         private readonly IDataProtector _dataProtector;
+        private readonly CryptExample _cryptExample;
 
         public HomeController(
             ILogger<HomeController> logger,
@@ -25,15 +26,16 @@ namespace kat.Controllers
             HashingExample hashingExample,
             IServiceProvider serviceProvider,
             MyUserRoleHandler myUserRoleHandler,
-            IDataProtector dataProtector)
+            IDataProtectionProvider dataProtector,
+            CryptExample cryptExample)
         {
             _logger = logger;
             _class1 = class1;
             _hashingExample = hashingExample;
             _serviceProvider = serviceProvider;
             _myUserRoleHandler = myUserRoleHandler;
-            _dataProtector = dataProtector;
             _dataProtector = dataProtector.CreateProtector("veryUniqueHomeControllerKey");
+            _cryptExample = cryptExample;
         }
 
         [Authorize("RequireAuthenticatedUser")]
@@ -53,7 +55,10 @@ namespace kat.Controllers
             string txtInput = "Hello World";
             bool verifyResult = _hashingExample.verifyWithBCrypt(txtInput, myBCryptHash);
 
-            IndexModel myModel = new IndexModel() { Text1 = myBCryptSalt, Text2 = myBCryptHash, Text3 = verifyResult.ToString(), Text4 = txt2 };
+            string myEncryptedText = _cryptExample.Encrypt(txt2, _dataProtector);
+            string myDecryptedText = _cryptExample.Decrypt(myEncryptedText, _dataProtector);
+
+            IndexModel myModel = new IndexModel() { Text1 = myBCryptSalt, Text2 = myBCryptHash, Text3 = verifyResult.ToString(), Text4 = myEncryptedText, Text5 = myDecryptedText };
 
             return View(model: myModel);
         }

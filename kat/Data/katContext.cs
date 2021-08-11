@@ -13,7 +13,5 @@ namespace kat.Data
             : base(options)
         {
         }
-
-        public DbSet<Person> Person { get; set; }
     }
 }

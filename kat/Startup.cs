@@ -34,6 +34,7 @@ namespace kat
             services.AddSingleton<Class1>();
             services.AddTransient<HashingExample>();
             services.AddTransient<MyUserRoleHandler>();
+            services.AddTransient<CryptExample>();
 
             services.AddDbContext<katContext>(options =>
             {
