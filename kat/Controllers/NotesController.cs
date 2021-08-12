@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using kat.Data;
 using kat.Models;
+using kat.Code;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authorization;
 
 namespace kat.Controllers
@@ -14,17 +16,40 @@ namespace kat.Controllers
     public class NotesController : Controller
     {
         private readonly katContext _context;
+        private readonly CryptExample _cryptExample;
+        private readonly IDataProtector _dataProtector;
 
-        public NotesController(katContext context)
+
+        public NotesController(
+            katContext context,
+            CryptExample cryptExample,
+            IDataProtectionProvider dataProtector)
         {
             _context = context;
+            _cryptExample = cryptExample;
+            _dataProtector = dataProtector.CreateProtector("notesControllerKey");
         }
 
         [Authorize("RequireAuthenticatedUser")]
         // GET: Notes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Note.ToListAsync());
+            var data = await _context.Note.Where(n => n.enteredBy == User.Identity.Name).ToListAsync();
+
+            List<Note> newList = new();
+
+            for (int i = 0; i < data.Count; i++)
+            {
+                Note newNote = new();
+
+                var decryptedMessage = _cryptExample.Decrypt(data[i].message, _dataProtector);
+                newNote.message = decryptedMessage;
+                newNote.enteredBy = data[i].enteredBy;
+
+                newList.Add(newNote);
+            }
+
+            return View(newList);
         }
 
         // GET: Notes/Details/5
@@ -56,10 +81,15 @@ namespace kat.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("id,note")] Note note)
+        public async Task<IActionResult> Create([Bind("id,message,enteredBy")] Note note)
         {
             if (ModelState.IsValid)
             {
+                string encryptedMessage = _cryptExample.Encrypt(note.message, _dataProtector);
+
+                note.message = encryptedMessage;
+                note.enteredBy = User.Identity.Name;
+
                 _context.Add(note);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -88,7 +118,7 @@ namespace kat.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("id,note")] Note note)
+        public async Task<IActionResult> Edit(int id, [Bind("id,message,enteredBy")] Note note)
         {
             if (id != note.id)
             {

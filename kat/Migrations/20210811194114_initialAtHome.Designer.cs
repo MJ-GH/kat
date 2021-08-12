@@ -2,15 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using kat.Data;
 
 namespace kat.Migrations
 {
     [DbContext(typeof(katContext))]
-    partial class katContextModelSnapshot : ModelSnapshot
+    [Migration("20210811194114_initialAtHome")]
+    partial class initialAtHome
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,9 +26,6 @@ namespace kat.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("enteredBy")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("message")
                         .HasColumnType("nvarchar(max)");
